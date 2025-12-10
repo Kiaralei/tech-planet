@@ -1,4 +1,6 @@
-# 🌈 Kiara's Tech Playground 🛠️✨
+# 🎁 Kiara's Tech Playground 🛠️✨
+
+```
 .--.   .--. .-./`)    ____    .-------.       ____     
 |  | _/  /  \ .-.') .'  __ `. |  _ _   \    .'  __ `.  
 | (`' ) /   / `-' \/   '  \  \| ( ' )  |   /   '  \  \ 
@@ -8,6 +10,7 @@
 |  | \ `'   /|   | |  _( )_  ||  | \ `'   /|  _( )_  | 
 |  |  \    / |   | \ (_ o _) /|  |  \    / \ (_ o _) / 
 `--'   `'-'  '---'  '.(_,_).' ''-'   `'-'   '.(_,_).'  
+```  
 
 
       ⠀⠀⠀  /\_/\  
@@ -41,7 +44,7 @@ Not trying to be perfect — just trying to get a little better every day ⭐.
 
 - 👣 Learn by doing
 - ✍️ Write to understand
-- 🪶 Keep things simple
+- 🎨 Keep things simple
 - 🔁 Revisit often, refine freely
 - 🔍 Curiosity first, correctness later
 
@@ -74,6 +77,4 @@ If future me reads this: **Keep going 💪🌟**
 ## Others
 Signature name from [TAAG - Text to ASCII Art Generator](https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false)
 Thanks for visiting 💖✨👋 
-
----
 
