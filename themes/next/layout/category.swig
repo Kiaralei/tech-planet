@@ -21,12 +21,7 @@
         </h2>
       </div>
 
-      {# 如果是 Frontend 分类，按子分类分组显示 #}
-      {%- if page.category === 'Frontend' %}
-        {{ post_by_category.render(page.posts) }}
-      {%- else %}
-        {{ post_template.render(page.posts) }}
-      {%- endif %}
+      {{ post_by_category.render(page.posts) }}
     </div>
   </div>
   {##########################}

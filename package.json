@@ -7,7 +7,8 @@
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",
-    "dev": "hexo server -p 4000"
+    "dev": "hexo server -p 4000",
+    "quick-new": "hexo new \"{{title}}\""
   },
   "hexo": {
     "version": "8.1.1"

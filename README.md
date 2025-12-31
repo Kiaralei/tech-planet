@@ -77,3 +77,8 @@ If future me reads this: **Keep going 💪🌟**
 
 Signature name from [TAAG - Text to ASCII Art Generator](https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type+Something+&x=none&v=4&h=4&w=80&we=false)
 Thanks for visiting 💖✨👋
+
+## Hexo Command
+
+Create dependent page: `npx hexo new page <title>` \
+Create article to the path: `hexo new <title> --path <path>`
