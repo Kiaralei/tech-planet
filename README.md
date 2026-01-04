@@ -82,3 +82,4 @@ Thanks for visiting 💖✨👋
 
 Create dependent page: `npx hexo new page <title>` \
 Create article to the path: `hexo new <title> --path <path>`
+e.g. `npx hexo new "Git 常用命令速查" --path Devops/Git/git-commands-cheatsheet`
