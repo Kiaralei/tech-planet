@@ -117,8 +117,8 @@ menu:
   home: / || home
   #about: /about/ || user
   categories: /categories/ || th
-  # tags: /tags/ || tags
-  # archives: /archives/ || archive
+  tags: /tags/ || tags
+  archives: /archives/ || archive
   # schedule: /schedule/ || calendar
   #sitemap: /sitemap.xml || sitemap
   #commonweal: /404/ || heartbeat
