@@ -17,6 +17,14 @@ tags:
 
 前端打包工具经历了从 **Grunt → Gulp → Webpack → Vite** 的演进。如今，开发者面对 Webpack、Vite、Rollup、esbuild、Parcel 等众多选择，该如何抉择？本文将全面对比这些现代打包工具。
 
+本文定位是基础对比和选型入口。每个工具的原理、配置和适用场景，会放到独立专题里展开：
+
+- Webpack：依赖图、Loader、Plugin、复杂工程定制
+- Rollup：ESM、Tree Shaking、库打包
+- Vite：原生 ESM、HMR、esbuild、Rollup 生产构建
+- esbuild：高速 transform 和底层编译能力
+- Parcel：零配置和快速原型
+
 ---
 
 ## 🎯 快速对比
@@ -31,11 +39,25 @@ tags:
 
 ---
 
+## 🧭 先用一句话理解三代工具
+
+如果只看 Webpack、Rollup 和 Vite，它们代表了前端构建工具里三种很典型的思路：
+
+| 工具        | 核心定位                   | 代表意义                 |
+| ----------- | -------------------------- | ------------------------ |
+| **Webpack** | 万物皆模块                 | 接管整个前端资源世界     |
+| **Rollup**  | 极致打包库                 | 生成更干净的库产物       |
+| **Vite**    | 利用浏览器 ESM 的开发工具  | 开发阶段尽量不打包       |
+
+更详细的原理展开可以看：[Webpack、Rollup 和 Vite：前端构建工具的三个时代](/Frontend/Engineering/webpack-rollup-vite/)。
+
+---
+
 ## 📦 Webpack - 功能最全的老牌王者
 
 ### 简介
 
-**Webpack** 是目前生态最完善的打包工具，几乎所有前端项目都曾使用过它。
+**Webpack** 是目前生态最完善的打包工具，几乎所有前端项目都曾使用过它。它的核心能力是从入口文件开始构建依赖图，并通过 Loader 和 Plugin 处理各种资源与构建流程。
 
 ### 核心概念
 
@@ -187,6 +209,8 @@ Vite：
 | **开发启动** | 打包所有模块       | 直接启动，按需编译               |
 | **HMR**      | 重新构建整个模块图 | 只更新改动的模块                 |
 | **底层**     | JavaScript         | esbuild（Go 语言，快 10-100 倍） |
+
+简单说，Vite 快的关键是开发阶段不预打包业务源码，而是利用浏览器原生 ESM 按需编译模块；esbuild 主要负责高速语法转换和依赖预构建。详细原理见：[Webpack、Rollup 和 Vite：前端构建工具的三个时代](/Frontend/Engineering/webpack-rollup-vite/)。
 
 ### 基础配置
 
@@ -607,24 +631,35 @@ unjs 团队出品
 
 | 工具        | 一句话定位                     |
 | ----------- | ------------------------------ |
-| **Webpack** | 功能最全，配置最复杂，老牌王者 |
-| **Vite**    | 开发体验最好，新项目首选       |
-| **Rollup**  | 打包库的最佳选择               |
-| **esbuild** | 最快，但功能有限，常作底层     |
+| **Webpack** | 我来接管整个前端世界           |
+| **Rollup**  | 我要生成最干净的 JS            |
+| **Vite**    | 既然浏览器会 ESM，开发时为什么还打包 |
+| **esbuild** | 用极快的 transform 支撑现代工具链 |
 | **Parcel**  | 零配置，适合小项目和原型       |
 
-### 2024 年推荐
+### 当前推荐
 
 ```
-🏆 应用开发：Vite（无脑选）
-🏆 库开发：Rollup 或 tsup
-🏆 复杂大项目：Webpack 5
-🏆 追求极速：esbuild
+🏆 现代应用开发：Vite
+🏆 库/SDK/组件库开发：Rollup 或 tsup
+🏆 复杂存量项目：Webpack 5
+🏆 底层极速编译：esbuild
 ```
 
 ---
 
 ## 📚 相关资源
+
+### 本站详解
+
+- [Webpack 详解：Module、Bundle、Chunk、Loader 和 Plugin](/Frontend/Engineering/webpack-build-tool/)
+- [Rollup 详解：为什么它适合打包库](/Frontend/Engineering/rollup-build-tool/)
+- [Vite 详解：为什么开发启动和 HMR 这么快](/Frontend/Engineering/vite-build-tool/)
+- [esbuild 详解：为什么它这么快](/Frontend/Engineering/esbuild-build-tool/)
+- [Parcel 详解：零配置构建工具适合什么场景](/Frontend/Engineering/parcel-build-tool/)
+- [Webpack、Rollup 和 Vite：前端构建工具的三个时代](/Frontend/Engineering/webpack-rollup-vite/)
+
+### 官方文档
 
 - [Webpack 官方文档](https://webpack.js.org/)
 - [Vite 官方文档](https://vitejs.dev/)
