@@ -116,6 +116,7 @@ darkmode: false
 menu:
   home: / || home
   #about: /about/ || user
+  columns: /columns/ || book
   categories: /categories/ || th
   tags: /tags/ || tags
   archives: /archives/ || archive
