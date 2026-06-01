@@ -1,16 +1,53 @@
+<%
+  var allPosts = site.posts.sort('-date').toArray();
+  var groups = {};
+  allPosts.forEach(function (post) {
+    var y = date(post.date, 'YYYY');
+    if (!groups[y]) groups[y] = [];
+    groups[y].push(post);
+  });
+  var years = Object.keys(groups).sort(function (a, b) { return b - a; });
+%>
 <section class="page-content">
   <header class="page-header">
     <p class="eyebrow">Archive</p>
-    <h1><%= page.year ? page.year : 'All notes' %></h1>
+    <h1>All notes</h1>
+    <p class="archive-meta"><%= allPosts.length %> 篇文章</p>
   </header>
-  <div class="timeline-list">
-    <% page.posts.toArray().forEach(function(post) { %>
-      <a class="timeline-item" href="<%- url_for(post.path) %>">
-        <time><%= date(post.date, 'YYYY.MM.DD') %></time>
-        <span><%= post.title %></span>
-      </a>
-    <% }) %>
-  </div>
-  <%- partial('_partial/paginator') %>
-</section>
 
+  <div class="archive-search">
+    <label class="archive-search-field">
+      <svg class="archive-search-icon" viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M13.5 13.5 L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <input
+        type="search"
+        class="archive-search-input"
+        placeholder="按标题搜索…"
+        autocomplete="off"
+        data-archive-search
+      />
+    </label>
+    <p class="archive-search-empty" data-archive-empty hidden>没有匹配的文章</p>
+  </div>
+
+  <% years.forEach(function (year) { %>
+    <section class="archive-year" data-archive-year>
+      <h2 class="archive-year-heading"><%= year %></h2>
+      <div class="timeline-list">
+        <% groups[year].forEach(function (post) { %>
+          <a
+            class="timeline-item"
+            href="<%- url_for(post.path) %>"
+            data-archive-item
+            data-archive-title="<%= post.title.toLowerCase() %>"
+          >
+            <time><%= date(post.date, 'MM.DD') %></time>
+            <span><%= post.title %></span>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% }); %>
+</section>

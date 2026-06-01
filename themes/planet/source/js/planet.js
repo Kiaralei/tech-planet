@@ -220,4 +220,37 @@
     render();
     requestAnimationFrame(tick);
   });
+
+  var archiveInput = document.querySelector('[data-archive-search]');
+  if (archiveInput) {
+    var archiveItems = Array.prototype.slice.call(
+      document.querySelectorAll('[data-archive-item]')
+    );
+    var archiveYears = Array.prototype.slice.call(
+      document.querySelectorAll('[data-archive-year]')
+    );
+    var archiveEmpty = document.querySelector('[data-archive-empty]');
+
+    function filterArchive() {
+      var query = archiveInput.value.trim().toLowerCase();
+      var anyVisible = false;
+
+      archiveItems.forEach(function (item) {
+        var title = item.getAttribute('data-archive-title') || '';
+        var match = !query || title.indexOf(query) !== -1;
+        item.hidden = !match;
+        if (match) anyVisible = true;
+      });
+
+      archiveYears.forEach(function (year) {
+        var hasVisible =
+          year.querySelectorAll('[data-archive-item]:not([hidden])').length > 0;
+        year.hidden = !hasVisible;
+      });
+
+      if (archiveEmpty) archiveEmpty.hidden = anyVisible;
+    }
+
+    archiveInput.addEventListener('input', filterArchive);
+  }
 })();
