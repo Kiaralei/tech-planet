@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">微信小程序 JSBridge 通信链路</title>
+  <desc id="desc">展示 wx API 从 JS 调用到基础库封装、JSBridge 传递、Native 分发、原生模块执行，再通过 callbackId 回调 JS 的流程。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ad"/>
+      <stop offset=".45" stop-color="#ffd3e4"/>
+      <stop offset="1" stop-color="#b7f7ff"/>
+    </linearGradient>
+    <linearGradient id="cardJs" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eaffb8"/>
+    </linearGradient>
+    <linearGradient id="cardBridge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#c6f4ff"/>
+    </linearGradient>
+    <linearGradient id="cardNative" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffd4ef"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#5b3b6d" flood-opacity=".16"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L11 7 L2 12 Z" fill="#5a4b6f"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" rx="44" fill="url(#bg)"/>
+  <circle cx="180" cy="120" r="92" fill="#ff7ab6" opacity=".24" filter="url(#soft)"/>
+  <circle cx="1104" cy="166" r="116" fill="#5be7d6" opacity=".28" filter="url(#soft)"/>
+  <circle cx="1010" cy="616" r="150" fill="#9b7cff" opacity=".16" filter="url(#soft)"/>
+
+  <text x="76" y="88" fill="#29233a" font-family="Inter, 'Microsoft YaHei', sans-serif" font-size="38" font-weight="800">微信小程序 JSBridge 通信链路</text>
+  <text x="78" y="128" fill="#625875" font-family="Inter, 'Microsoft YaHei', sans-serif" font-size="18">wx API 不是直接调用 Native，而是通过消息协议和 callbackId 完成一次跨层通信。</text>
+
+  <g font-family="Inter, 'Microsoft YaHei', sans-serif">
+    <g filter="url(#shadow)">
+      <rect x="74" y="206" width="188" height="144" rx="26" fill="url(#cardJs)"/>
+      <text x="108" y="252" fill="#2c2638" font-size="23" font-weight="800">1. JS 调用</text>
+      <text x="108" y="290" fill="#5f536c" font-size="17">wx.scanCode()</text>
+      <text x="108" y="320" fill="#5f536c" font-size="17">传入参数和回调</text>
+    </g>
+
+    <g filter="url(#shadow)">
+      <rect x="318" y="206" width="202" height="144" rx="26" fill="url(#cardJs)"/>
+      <text x="350" y="252" fill="#2c2638" font-size="23" font-weight="800">2. 基础库</text>
+      <text x="350" y="290" fill="#5f536c" font-size="17">校验参数</text>
+      <text x="350" y="320" fill="#5f536c" font-size="17">生成 callbackId</text>
+    </g>
+
+    <g filter="url(#shadow)">
+      <rect x="580" y="206" width="206" height="144" rx="26" fill="url(#cardBridge)"/>
+      <text x="612" y="252" fill="#2c2638" font-size="23" font-weight="800">3. 消息过桥</text>
+      <text x="612" y="290" fill="#5f536c" font-size="17">api + params</text>
+      <text x="612" y="320" fill="#5f536c" font-size="17">+ callbackId</text>
+    </g>
+
+    <g filter="url(#shadow)">
+      <rect x="848" y="206" width="190" height="144" rx="26" fill="url(#cardNative)"/>
+      <text x="880" y="252" fill="#2c2638" font-size="23" font-weight="800">4. Native</text>
+      <text x="880" y="290" fill="#5f536c" font-size="17">解析消息</text>
+      <text x="880" y="320" fill="#5f536c" font-size="17">分发到模块</text>
+    </g>
+
+    <g filter="url(#shadow)">
+      <rect x="1092" y="206" width="132" height="144" rx="26" fill="url(#cardNative)"/>
+      <text x="1126" y="252" fill="#2c2638" font-size="23" font-weight="800">5. 执行</text>
+      <text x="1122" y="290" fill="#5f536c" font-size="17">扫码</text>
+      <text x="1122" y="320" fill="#5f536c" font-size="17">定位等</text>
+    </g>
+
+    <path d="M266 278 H306" stroke="#5a4b6f" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M524 278 H568" stroke="#5a4b6f" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M790 278 H836" stroke="#5a4b6f" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <path d="M1042 278 H1080" stroke="#5a4b6f" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+    <path d="M1158 380 C1120 524 944 584 692 584 C424 584 214 526 168 382" fill="none" stroke="#ff6fae" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 18" marker-end="url(#arrow)"/>
+    <text x="456" y="546" fill="#7b3260" font-size="23" font-weight="800">6. Native 回传 callbackId + result</text>
+    <text x="476" y="586" fill="#7b3260" font-size="18">基础库根据 callbackId 找到 success / fail / complete 并执行</text>
+
+    <g transform="translate(118 438)">
+      <rect width="356" height="78" rx="22" fill="#ffffff" opacity=".78"/>
+      <text x="28" y="32" fill="#2c2638" font-size="18" font-weight="800">关键点</text>
+      <text x="28" y="58" fill="#63566f" font-size="16">跨桥传的是可序列化消息，不是 JS 函数本身。</text>
+    </g>
+
+    <g transform="translate(804 438)">
+      <rect width="356" height="78" rx="22" fill="#ffffff" opacity=".78"/>
+      <text x="28" y="32" fill="#2c2638" font-size="18" font-weight="800">为什么异步</text>
+      <text x="28" y="58" fill="#63566f" font-size="16">Native 执行原生能力后，再通过桥把结果送回 JS。</text>
+    </g>
+  </g>
+</svg>
