@@ -1,6 +1,6 @@
 ---
 title: 手写 Promise 四兄弟：all / race / any / allSettled
-date: 2026-05-27 14:00:00
+date: 2026-06-01 15:24:00
 categories:
   - Frontend
   - JavaScript
@@ -117,8 +117,129 @@ function myPromiseAll(iterable) {
 ### 关键细节
 
 - **必须按 `index` 写入 `results`，不能用 `push`**：异步快慢不同，`push` 会乱序。
-- **`remaining` 计数器**：归零才 resolve。不用 `results.length === list.length` 是因为 `results[index] = undefined` 在稀疏数组里 `length` 不会按预期变化。
+- **必须用 `remaining` 计数器追踪完成数**：原因见下一节。
 - **空数组必须特判**：否则 `remaining` 永远到不了 0，Promise 永远 pending。
+
+### 为什么必须用 `remaining` 计数器？
+
+初学者常问：**为什么不能等 `forEach` 遍历结束直接 `resolve`？** 这个问题背后是对"同步循环"和"异步回调"边界的误解。
+
+#### 核心结论
+
+**`forEach` 是同步的，它在所有 Promise 还没 resolve 之前就已经跑完了。**
+
+"遍历结束" 对应的是"任务**派发完成**"，而不是"任务**完成**"。我们要等的是后者。
+
+#### 用时间线看
+
+```js
+console.log('1. forEach 开始');
+
+list.forEach((item, index) => {
+  console.log('2. 派发第', index, '个');     // 同步执行
+  Promise.resolve(item).then((value) => {
+    console.log('5. 第', index, '个完成');    // 异步，要等
+  });
+});
+
+console.log('3. forEach 结束');
+console.log('4. 同步代码全跑完');
+```
+
+输出顺序：
+
+```
+1. forEach 开始
+2. 派发第 0 个
+2. 派发第 1 个
+2. 派发第 2 个
+3. forEach 结束           ← 此刻所有 then 回调一个都没跑！
+4. 同步代码全跑完
+5. 第 0 个完成            ← 微任务/异步任务这时才开始执行
+5. 第 1 个完成
+5. 第 2 个完成
+```
+
+`forEach` 结束的瞬间，3 个 `then` 回调一个都还没执行。如果这时 `resolve(results)`，`results` 里全是 `undefined`。
+
+#### 反例：在 forEach 后直接 resolve 会怎样
+
+```js
+function brokenPromiseAll(list) {
+  return new Promise((resolve) => {
+    const results = [];
+    list.forEach((item, index) => {
+      Promise.resolve(item).then((value) => {
+        results[index] = value;
+      });
+    });
+    resolve(results);   // ❌ 这里立刻就 resolve 了
+  });
+}
+
+brokenPromiseAll([
+  new Promise(r => setTimeout(() => r(1), 100)),
+  new Promise(r => setTimeout(() => r(2), 100)),
+]).then(console.log);
+// 输出：[]  ← results 还是空的就被返回了
+```
+
+100ms 后 `setTimeout` 才 resolve 各个内部 Promise，但外层 Promise **状态已经定了**，再写 `results[index]` 也没用了（订阅者已经拿到空数组）。
+
+#### 为什么不能用 `results.length === list.length` 代替？
+
+两个原因：
+
+1. **稀疏数组陷阱**：`results[2] = 'c'` 时，如果 `results[0]`、`results[1]` 还没赋值，`length` 会直接变成 3，但前两个位置是 `<empty>` —— 判断会假阳性。
+2. **本质上没省事**：你还是要在**每个 then 里**做这个判断，跟 `remaining--` + `if (remaining === 0)` 是同一回事，还更绕。
+
+#### 那能不能改写成不需要计数器？
+
+可以，但都有代价。
+
+**方案 A：用 reduce 串成 Promise 链**
+
+```js
+function myPromiseAll(iterable) {
+  return Array.from(iterable).reduce(
+    (acc, item) =>
+      acc.then((results) =>
+        Promise.resolve(item).then((v) => [...results, v])
+      ),
+    Promise.resolve([])
+  );
+}
+```
+
+能跑，但 **串行执行**，丢失了并行性 —— `Promise.all` 的核心价值就是并行，这就背离了语义。
+
+**方案 B：`for await`**
+
+```js
+async function myPromiseAll(iterable) {
+  const results = [];
+  for (const item of iterable) {
+    results.push(await Promise.resolve(item));
+  }
+  return results;
+}
+```
+
+同样问题：串行。
+
+#### 计数器是"等齐"问题的标准解法
+
+回到本质，`Promise.all` 要解决的是：
+
+> **N 个独立的异步任务，并行执行，全部完成时通知我。**
+
+"全部完成"这个判断必须在**每个任务结束后**问一次："我是不是最后一个？" 最简洁的实现就是：
+
+- 一个共享的整数 `remaining = N`
+- 每个任务结束后做 `remaining--`
+- 谁让 `remaining` 归零，谁就负责 `resolve`
+
+这是经典的 **barrier / join 同步原语**，多线程编程里也是同一套思路（叫 latch、barrier、countdown latch）。计数器不是 hack，而是这类"并发汇合"问题的标准答案。
 
 ### 测试
 
