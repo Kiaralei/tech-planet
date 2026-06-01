@@ -1,0 +1,11 @@
+menu:
+  首页: /
+  专栏: /columns/
+  分类: /categories/
+  标签: /tags/
+  归档: /archives/
+
+profile:
+  eyebrow: "Tech Planet"
+  title: "Frontend notes, engineering systems, and useful things worth keeping."
+  description: "A focused personal knowledge base for frontend, JavaScript, CSS, engineering workflows, deployment, and long-term learning."

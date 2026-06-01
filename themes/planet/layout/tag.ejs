@@ -1,0 +1,13 @@
+<section class="page-content">
+  <header class="page-header">
+    <p class="eyebrow">Tag</p>
+    <h1><%= page.tag || 'Tags' %></h1>
+  </header>
+  <div class="post-list compact">
+    <% page.posts.toArray().forEach(function(post) { %>
+      <%- partial('_partial/post-card', { post: post }) %>
+    <% }) %>
+  </div>
+  <%- partial('_partial/paginator') %>
+</section>
+

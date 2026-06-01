@@ -1,0 +1,16 @@
+<section class="page-content">
+  <header class="page-header">
+    <p class="eyebrow">Archive</p>
+    <h1><%= page.year ? page.year : 'All notes' %></h1>
+  </header>
+  <div class="timeline-list">
+    <% page.posts.toArray().forEach(function(post) { %>
+      <a class="timeline-item" href="<%- url_for(post.path) %>">
+        <time><%= date(post.date, 'YYYY.MM.DD') %></time>
+        <span><%= post.title %></span>
+      </a>
+    <% }) %>
+  </div>
+  <%- partial('_partial/paginator') %>
+</section>
+

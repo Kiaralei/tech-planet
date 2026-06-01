@@ -1,0 +1,13 @@
+<% if (page.prev_link || page.next_link) { %>
+  <nav class="pager" aria-label="Pagination">
+    <% if (page.prev_link) { %>
+      <a href="<%- url_for(page.prev_link) %>">Newer notes</a>
+    <% } else { %>
+      <span></span>
+    <% } %>
+    <% if (page.next_link) { %>
+      <a href="<%- url_for(page.next_link) %>">Older notes</a>
+    <% } %>
+  </nav>
+<% } %>
+

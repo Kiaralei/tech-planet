@@ -1,0 +1,112 @@
+<article class="page-content">
+  <header class="page-header">
+    <p class="eyebrow"><%= page.type || 'Page' %></p>
+    <h1><%= page.title %></h1>
+  </header>
+  <% if (page.type === 'categories') { %>
+    <%
+      const categories = site.categories.sort('name').toArray().map(function(category) {
+        const pathParts = (category.path || '').replace(/^categories\/?|\/$/g, '').split('/').filter(Boolean);
+        return {
+          name: category.name,
+          path: category.path,
+          count: category.length || 0,
+          parent: pathParts.length > 1 ? pathParts.slice(0, -1).join(' / ') : '',
+          isRoot: pathParts.length <= 1
+        };
+      });
+      const rootCategories = categories.filter(function(category) { return category.isRoot; });
+      const childCategories = categories.filter(function(category) { return !category.isRoot; });
+    %>
+    <section class="category-board">
+      <div class="category-intro">
+        <span>Topic map</span>
+        <p>按主题把笔记收起来。先看大方向，再进入具体分支。</p>
+      </div>
+
+      <div class="category-major-list">
+        <% rootCategories.forEach(function(category, index) { %>
+          <a class="category-major" href="<%- url_for(category.path) %>">
+            <span class="category-token"><%= String(index + 1).padStart(2, '0') %></span>
+            <strong><%= category.name %></strong>
+            <em><%= category.count %> notes</em>
+          </a>
+        <% }) %>
+      </div>
+
+      <% if (childCategories.length) { %>
+        <div class="category-section-title">
+          <span>Branches</span>
+          <strong>细分主题</strong>
+        </div>
+        <div class="category-branch-list">
+          <% childCategories.forEach(function(category, index) { %>
+            <a class="category-branch" href="<%- url_for(category.path) %>">
+              <span class="category-dot"><%= String(index + 1).padStart(2, '0') %></span>
+              <span>
+                <strong><%= category.name %></strong>
+                <% if (category.parent) { %>
+                  <small><%= category.parent %></small>
+                <% } %>
+              </span>
+              <em><%= category.count %></em>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  <% } else if (page.type === 'tags') { %>
+    <%
+      const tags = site.tags.sort('name').toArray().sort(function(a, b) {
+        const countDiff = (b.length || 0) - (a.length || 0);
+        return countDiff || String(a.name).localeCompare(String(b.name));
+      });
+      const totalTagPosts = tags.reduce(function(sum, tag) {
+        return sum + (tag.length || 0);
+      }, 0);
+    %>
+    <section class="tag-planet-board">
+      <div class="tag-planet-copy">
+        <span>Tag planet</span>
+        <p>拖动旋转，点亮一个主题。</p>
+      </div>
+
+      <div class="tag-sphere-panel">
+        <div class="tag-sphere" data-tag-sphere aria-label="由标签组成的小星球，可拖动旋转">
+          <span class="tag-sphere-ring tag-sphere-ring-back" aria-hidden="true"></span>
+          <span class="tag-sphere-ring tag-sphere-ring-front" aria-hidden="true"></span>
+          <% tags.forEach(function(tag, index) { %>
+            <a class="tag-sphere-node" href="<%- url_for(tag.path) %>" data-weight="<%= tag.length || 0 %>" style="--tag-i:<%= index %>">
+              <span><%= tag.name %></span>
+            </a>
+          <% }) %>
+        </div>
+
+        <div class="tag-sphere-stats">
+          <strong><%= tags.length %></strong>
+          <span>tags</span>
+          <em><%= totalTagPosts %> links</em>
+        </div>
+      </div>
+
+      <div class="tag-index">
+        <div class="tag-index-head">
+          <span>All tags</span>
+          <strong>标签索引</strong>
+        </div>
+        <div class="tag-index-list" aria-label="全部标签">
+          <% tags.forEach(function(tag, index) { %>
+            <a class="tag-index-item" href="<%- url_for(tag.path) %>" style="--tag-i:<%= index %>">
+              <span><%= tag.name %></span>
+              <em><%= tag.length || 0 %></em>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+  <% } else { %>
+    <div class="article-content">
+      <%- page.content %>
+    </div>
+  <% } %>
+</article>

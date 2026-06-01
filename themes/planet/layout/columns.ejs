@@ -1,0 +1,60 @@
+<article class="page-content">
+  <header class="page-header">
+    <p class="eyebrow">Learning tracks</p>
+    <h1><%= page.title %></h1>
+  </header>
+
+  <section class="columns-board">
+    <div class="columns-intro">
+      <span>Learning tracks</span>
+      <p>把零散笔记整理成可以连续阅读的路线。每个专栏都围绕一个长期主题展开，适合按顺序慢慢补齐。</p>
+    </div>
+
+    <a class="column-track is-active-track" href="<%- url_for('/engineering/') %>">
+      <span class="column-index">01</span>
+      <div>
+        <span class="column-kicker">正在更新</span>
+        <h2>前端工程化</h2>
+        <p>模块化、构建工具、包管理、Monorepo、代码规范和 CI/CD。关注一个前端项目如何长期稳定地开发和发布。</p>
+      </div>
+    </a>
+
+    <div class="columns-queue">
+      <article class="column-track">
+        <span class="column-index">02</span>
+        <div>
+          <span class="column-kicker">准备中</span>
+          <h2>CSS 布局</h2>
+          <p>Flex、Grid、响应式、对齐、间距和日常页面排版。</p>
+        </div>
+      </article>
+
+      <article class="column-track">
+        <span class="column-index">03</span>
+        <div>
+          <span class="column-kicker">准备中</span>
+          <h2>JavaScript 核心机制</h2>
+          <p>作用域、原型链、事件循环、异步模型和浏览器运行机制。</p>
+        </div>
+      </article>
+
+      <article class="column-track">
+        <span class="column-index">04</span>
+        <div>
+          <span class="column-kicker">稍后</span>
+          <h2>React / Next.js</h2>
+          <p>组件设计、渲染模式、路由、数据获取和工程实践。</p>
+        </div>
+      </article>
+
+      <article class="column-track">
+        <span class="column-index">05</span>
+        <div>
+          <span class="column-kicker">稍后</span>
+          <h2>DevOps 与部署</h2>
+          <p>Git 规范、Nginx、自动化发布和 Web 服务部署基础。</p>
+        </div>
+      </article>
+    </div>
+  </section>
+</article>

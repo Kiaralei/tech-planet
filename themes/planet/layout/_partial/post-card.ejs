@@ -1,0 +1,26 @@
+<%
+  const postUrl = url_for(post.path);
+  const summarySource = post.excerpt || post.content || '';
+  const summary = strip_html(summarySource).replace(/\s+/g, ' ').trim().slice(0, 180);
+%>
+<article class="post-card">
+  <a class="post-card-link" href="<%- postUrl %>">
+    <div class="post-card-meta">
+      <time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY.MM.DD') %></time>
+      <% if (post.categories && post.categories.length) { %>
+        <span><%= post.categories.map(function(cat) { return cat.name; }).join(' / ') %></span>
+      <% } %>
+    </div>
+    <h2><%= post.title %></h2>
+    <% if (summary) { %>
+      <p><%= summary %><%= summary.length >= 180 ? '...' : '' %></p>
+    <% } %>
+    <% if (post.tags && post.tags.length) { %>
+      <div class="tag-row">
+        <% post.tags.toArray().slice(0, 5).forEach(function(tag) { %>
+          <span><%= tag.name %></span>
+        <% }) %>
+      </div>
+    <% } %>
+  </a>
+</article>

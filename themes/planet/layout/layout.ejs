@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="<%= config.language || 'zh-CN' %>">
+  <head>
+    <%- partial('_partial/head') %>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">跳到正文</a>
+    <div class="site-shell">
+      <%- partial('_partial/header') %>
+      <main class="site-main" id="main">
+        <%- body %>
+      </main>
+      <%- partial('_partial/footer') %>
+    </div>
+    <script src="<%- url_for('/js/planet.js') %>"></script>
+  </body>
+</html>

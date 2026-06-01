@@ -1,0 +1,39 @@
+<section class="hero-panel">
+  <div class="hero-copy">
+    <p class="eyebrow"><%= theme.profile.eyebrow %></p>
+    <h1><%= theme.profile.title %></h1>
+    <p><%= theme.profile.description %></p>
+    <div class="hero-actions">
+      <a href="<%- url_for('/columns/') %>">查看专栏</a>
+      <a href="<%- url_for('/archives/') %>">浏览归档</a>
+    </div>
+  </div>
+  <div class="system-board" aria-label="Site focus areas">
+    <p>Current tracks</p>
+    <a href="<%- url_for('/engineering/') %>">
+      <strong>Frontend Engineering</strong>
+      <span>工程化 / 构建 / 协作</span>
+    </a>
+    <a href="<%- url_for('/categories/Frontend/CSS/') %>">
+      <strong>CSS Layout</strong>
+      <span>布局 / 样式 / 视觉基础</span>
+    </a>
+    <a href="<%- url_for('/categories/Frontend/JavaScript/') %>">
+      <strong>JavaScript Core</strong>
+      <span>语言机制 / 异步 / 浏览器</span>
+    </a>
+  </div>
+</section>
+
+<section class="section-heading">
+  <p>Latest</p>
+  <h2>Recent notes</h2>
+</section>
+
+<div class="post-list">
+  <% page.posts.toArray().forEach(function(post) { %>
+    <%- partial('_partial/post-card', { post: post }) %>
+  <% }) %>
+</div>
+
+<%- partial('_partial/paginator') %>

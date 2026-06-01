@@ -1,0 +1,24 @@
+<%
+  const themeMenu = theme.menu || {};
+  const currentPath = page.path || '';
+%>
+<header class="site-header">
+  <a class="brand" href="<%- url_for('/') %>" aria-label="<%= config.title %>">
+    <span class="brand-mark">K</span>
+    <span class="brand-text">
+      <span class="brand-name"><%= config.title %></span>
+      <span class="brand-subtitle">Tech Planet</span>
+    </span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary navigation">
+    <% Object.keys(themeMenu).forEach(function(label) { 
+      const link = themeMenu[label];
+      const normalized = link.replace(/^\/|\/$/g, '');
+      const active = normalized ? currentPath.startsWith(normalized + '/') || currentPath === normalized + '/index.html' : currentPath === 'index.html';
+    %>
+      <a class="<%= active ? 'is-active' : '' %>" href="<%- url_for(link) %>"><%= label %></a>
+    <% }) %>
+  </nav>
+</header>
+
