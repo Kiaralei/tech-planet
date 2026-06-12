@@ -380,6 +380,16 @@ runtime.evaluate(developerAppCode)
 
 真实微信内部实现不会这么简单，但模型可以这样理解。
 
+落到微信的真实选型上，不同端用的 JS 引擎并不一样：
+
+| 端 | 逻辑层 JS 引擎 |
+| --- | --- |
+| iOS | JavaScriptCore（系统自带） |
+| Android | V8 |
+| 开发者工具 | Chromium 内核（隐藏 WebView） |
+
+这也解释了一个真实的坑：**同一份代码在 iOS、Android、开发者工具上行为偶尔会有细微差异**，因为底层引擎并不相同（比如某些 ES 新特性、正则、数字精度的边界表现）。所以重要逻辑一定要在真机上验证，不能只信开发者工具。
+
 ### 2. Native 给 JS 注入桥能力
 
 小程序 JS 运行在微信提供的 JS 运行环境里。
@@ -562,6 +572,18 @@ Android：addJavascriptInterface、evaluateJavascript
 
 小程序内部实现会更复杂，也不一定等同于普通 H5 WebView 的某一种方案。
 
+这里还要补一个区分：**逻辑层和渲染层接 Native 的通道并不一样**。
+
+```txt
+渲染层（WebView，有 DOM）↔ Native
+  走 WebView 的消息通道（如 WKScriptMessageHandler / addJavascriptInterface）
+
+逻辑层（JSCore，无 DOM）↔ Native
+  走 Native 给 JS 引擎「注入原生方法」的方式，不依赖 WebView 那套
+```
+
+正因为前面说过逻辑层没有 DOM，它的通信天然不能依赖 WebView 的 `postMessage` / `MessageHandler`——它靠的是 Native 在创建 JS Runtime 时注入进去的桥对象。
+
 但抽象模型是类似的：
 
 ```txt
@@ -577,6 +599,70 @@ Native 解析消息并执行对应能力
 ```txt
 JS 运行环境和微信客户端 Native 之间的进程内 / 宿主内通信
 ```
+
+下面落到 iOS 和 Android 上，看这条通道真实是怎么搭的。先记住一个分水岭：
+
+```txt
+逻辑层（JSCore / V8）：引擎是微信「自己内嵌」的 → 能直接做引擎级原生绑定（干净、可同步）
+渲染层（WebView）    ：引擎是「系统/浏览器」的    → 只能用 WebView 暴露的那几个口子（异步为主）
+```
+
+钥匙就在这里：逻辑层的引擎是微信亲手塞进去的，所以能往里直接注入原生函数；而 WebView 的内核不归它管，只能用官方接口。
+
+#### iOS
+
+**逻辑层（JavaScriptCore）**：Native 把 OC 的 block 直接注入成 JS 函数。
+
+```objc
+// Native(OC)：把原生能力塞进 JS 环境
+context[@"invokeNative"] = ^(NSString *api, NSDictionary *params, NSString *cbId) {
+    [WXModuleManager dispatch:api params:params callbackId:cbId];
+};
+```
+
+JS 里调 `invokeNative(...)` 就是在直接调一个 OC block——同进程、同内存，JSValue 自动做类型转换，不用拼 JSON 字符串，甚至能同步返回。回调时 Native 持有 `JSValue` 直接 `callWithArguments:`。
+
+**渲染层（WKWebView）**：只能用 WebKit 的消息通道。
+
+```js
+// 渲染层 JS
+window.webkit.messageHandlers.wxBridge.postMessage({ api, params, callbackId })
+```
+
+Native 在 `userContentController:didReceiveScriptMessage:` 里收（`message.body` 自动转成 `NSDictionary`），回传则用 `evaluateJavaScript:`。注意它**不能同步返回**，所以渲染层这条桥天然是异步 + callbackId。
+
+> 📜 WKWebView 之前的老 `UIWebView` 没这接口，得靠 hack：JS 改 `iframe.src = "wxbridge://..."`，Native 在 `shouldStartLoadWithRequest` 里拦截 URL 来收消息。
+
+#### Android
+
+**逻辑层（内嵌 V8）**：微信自带 V8（不依赖系统 WebView 的引擎），用 `FunctionTemplate` 把 C++ 函数暴露给 JS，C++ 再经 **JNI** 上到 Java 干活。同样是引擎级绑定，快且可控。
+
+**渲染层（系统 WebView）**：用 `addJavascriptInterface`。
+
+```java
+webView.addJavascriptInterface(new Bridge(), "wxBridge");
+
+class Bridge {
+    @JavascriptInterface   // ⚠️ 必须加这注解
+    public void postMessage(String json) { /* 收到 JS 消息 */ }
+}
+```
+
+JS 里 `wxBridge.postMessage(JSON.stringify({...}))`——这里只能传字符串/基本类型，所以要手动序列化。回传用 `webView.evaluateJavascript(...)`。
+
+> ⚠️ **安全坑**：`addJavascriptInterface` 在 Android 4.2 之前有重大漏洞——JS 能通过反射拿到 `Runtime.exec` 执行任意命令。4.2+ 要求用 `@JavascriptInterface` 注解显式声明才修复，这也是现在所有暴露方法都必须加注解的原因。
+> 📜 早期同样用过 URL 拦截（`shouldOverrideUrlLoading`）或劫持 `window.prompt`（`onJsPrompt`）来做通信。
+
+#### 一张表对齐两端两层
+
+| | JS → Native | Native → JS | 可同步? |
+| --- | --- | --- | --- |
+| iOS 逻辑层（JSCore） | 注入 OC block | `callWithArguments` | ✅ |
+| iOS 渲染层（WKWebView） | `WKScriptMessageHandler` | `evaluateJavaScript` | ❌ 异步 |
+| Android 逻辑层（V8） | `FunctionTemplate` + JNI | 持有 Function 直接 Call | ✅ |
+| Android 渲染层（WebView） | `addJavascriptInterface` | `evaluateJavascript` | ❌ 异步 |
+
+> 一句话：**逻辑层走引擎级原生绑定（因为引擎是微信内嵌的），渲染层走 WebView 暴露的消息通道（因为内核不归微信管）。** 这就是前面说的“两条不同通道”落到真实平台上的样子。
 
 ### 6. Native 收到消息后做分发
 
