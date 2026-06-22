@@ -1,0 +1,286 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">IP 包与 MAC 帧的一跳一跳转发过程</title>
+  <desc id="desc">动画展示客户端封装 HTTP、TCP、IP 和 MAC 帧，交换机按 MAC 转发，路由器看 IP 决定下一跳并重新封装 MAC 帧，最终到达服务器。</desc>
+  <style>
+    :root {
+      --bg: #f7fafc;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #cfd8e3;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --orange: #f97316;
+      --orange-soft: #ffedd5;
+      --green: #16a34a;
+      --green-soft: #dcfce7;
+      --purple: #7c3aed;
+      --purple-soft: #ede9fe;
+      --card: #ffffff;
+    }
+
+    text {
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      fill: var(--ink);
+    }
+
+    .title {
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      fill: var(--muted);
+    }
+
+    .device-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .device-subtitle,
+    .note {
+      font-size: 15px;
+      fill: var(--muted);
+    }
+
+    .label {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .small {
+      font-size: 13px;
+      fill: var(--muted);
+    }
+
+    .tiny {
+      font-size: 12px;
+      fill: var(--muted);
+    }
+
+    .card {
+      fill: var(--card);
+      stroke: #d9e2ec;
+      stroke-width: 1.5;
+      rx: 14;
+    }
+
+    .device {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      rx: 14;
+    }
+
+    .switch {
+      fill: var(--green-soft);
+      stroke: var(--green);
+    }
+
+    .router {
+      fill: var(--purple-soft);
+      stroke: var(--purple);
+    }
+
+    .server {
+      fill: var(--blue-soft);
+      stroke: var(--blue);
+    }
+
+    .path {
+      fill: none;
+      stroke: #94a3b8;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 10 12;
+    }
+
+    .ip-line {
+      stroke: var(--blue);
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .mac-line {
+      stroke: var(--orange);
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+
+    .packet {
+      filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.2));
+    }
+
+    .mac-shell {
+      fill: var(--orange-soft);
+      stroke: var(--orange);
+      stroke-width: 2;
+      rx: 12;
+    }
+
+    .ip-shell {
+      fill: var(--blue-soft);
+      stroke: var(--blue);
+      stroke-width: 2;
+      rx: 9;
+    }
+
+    .http-core {
+      fill: #ffffff;
+      stroke: #94a3b8;
+      stroke-width: 1.5;
+      rx: 6;
+    }
+
+    .step {
+      opacity: 0.18;
+      animation: highlight 12s linear infinite;
+    }
+
+    .step1 { animation-delay: 0s; }
+    .step2 { animation-delay: -9s; }
+    .step3 { animation-delay: -6s; }
+    .step4 { animation-delay: -3s; }
+
+    @keyframes highlight {
+      0%, 22% { opacity: 1; }
+      24%, 100% { opacity: 0.18; }
+    }
+
+    #packet {
+      animation: travel 12s linear infinite;
+    }
+
+    @keyframes travel {
+      0% { transform: translate(122px, 330px); }
+      20% { transform: translate(345px, 330px); }
+      25% { transform: translate(345px, 330px); }
+      45% { transform: translate(570px, 330px); }
+      50% { transform: translate(570px, 330px); }
+      70% { transform: translate(805px, 330px); }
+      75% { transform: translate(805px, 330px); }
+      95% { transform: translate(1030px, 330px); }
+      100% { transform: translate(1030px, 330px); }
+    }
+
+    #mac1, #mac2, #mac3, #mac4 {
+      animation: macSwap 12s linear infinite;
+    }
+
+    #mac1 { animation-delay: 0s; }
+    #mac2 { animation-delay: -9s; }
+    #mac3 { animation-delay: -6s; }
+    #mac4 { animation-delay: -3s; }
+
+    @keyframes macSwap {
+      0%, 22% { opacity: 1; }
+      24%, 100% { opacity: 0; }
+    }
+  </style>
+
+  <rect width="1280" height="720" fill="var(--bg)" />
+
+  <text x="58" y="62" class="title">一次请求不是一路自顶向下：中间设备只处理到自己的层</text>
+  <text x="60" y="94" class="subtitle">端系统完整封装/解封装；交换机看 MAC；路由器看 IP，并为下一跳重新封装 MAC 帧。</text>
+
+  <line x1="165" y1="276" x2="1115" y2="276" class="path" />
+  <line x1="177" y1="212" x2="1098" y2="212" class="ip-line" />
+  <text x="402" y="198" class="label" fill="var(--blue)">IP 包跨多跳：源 IP 通常不变，目标 IP = 服务器 IP</text>
+
+  <line x1="185" y1="526" x2="365" y2="526" class="mac-line" />
+  <line x1="430" y1="526" x2="610" y2="526" class="mac-line" />
+  <line x1="675" y1="526" x2="855" y2="526" class="mac-line" />
+  <line x1="920" y1="526" x2="1100" y2="526" class="mac-line" />
+  <text x="438" y="557" class="label" fill="var(--orange)">MAC 帧只负责当前一跳：每一跳都会重新封装</text>
+
+  <g transform="translate(72 250)">
+    <rect class="device" width="170" height="132" />
+    <rect x="38" y="28" width="94" height="54" rx="7" fill="#e2e8f0" stroke="#64748b" />
+    <rect x="58" y="86" width="54" height="10" rx="4" fill="#64748b" />
+    <text x="85" y="112" text-anchor="middle" class="device-title">客户端</text>
+    <text x="85" y="132" text-anchor="middle" class="device-subtitle">封装 HTTP/TCP/IP/MAC</text>
+  </g>
+
+  <g transform="translate(315 250)">
+    <rect class="device switch" width="170" height="132" />
+    <rect x="36" y="36" width="98" height="38" rx="10" fill="#ffffff" stroke="#16a34a" />
+    <circle cx="58" cy="55" r="5" fill="#16a34a" />
+    <circle cx="85" cy="55" r="5" fill="#16a34a" />
+    <circle cx="112" cy="55" r="5" fill="#16a34a" />
+    <text x="85" y="112" text-anchor="middle" class="device-title">交换机</text>
+    <text x="85" y="132" text-anchor="middle" class="device-subtitle">只看目标 MAC</text>
+  </g>
+
+  <g transform="translate(558 250)">
+    <rect class="device router" width="180" height="132" />
+    <rect x="40" y="31" width="100" height="48" rx="12" fill="#ffffff" stroke="#7c3aed" />
+    <path d="M58 55h64M76 43l-18 12 18 12M104 43l18 12-18 12" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <text x="90" y="112" text-anchor="middle" class="device-title">家用路由器</text>
+    <text x="90" y="132" text-anchor="middle" class="device-subtitle">看 IP，换 MAC</text>
+  </g>
+
+  <g transform="translate(805 250)">
+    <rect class="device router" width="180" height="132" />
+    <rect x="40" y="31" width="100" height="48" rx="12" fill="#ffffff" stroke="#7c3aed" />
+    <path d="M58 55h64M76 43l-18 12 18 12M104 43l18 12-18 12" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <text x="90" y="112" text-anchor="middle" class="device-title">运营商路由器</text>
+    <text x="90" y="132" text-anchor="middle" class="device-subtitle">TTL -1，查下一跳</text>
+  </g>
+
+  <g transform="translate(1048 250)">
+    <rect class="device server" width="170" height="132" />
+    <rect x="50" y="24" width="70" height="72" rx="8" fill="#ffffff" stroke="#2563eb" />
+    <line x1="62" y1="45" x2="108" y2="45" stroke="#2563eb" stroke-width="4" />
+    <line x1="62" y1="63" x2="108" y2="63" stroke="#2563eb" stroke-width="4" />
+    <line x1="62" y1="81" x2="108" y2="81" stroke="#2563eb" stroke-width="4" />
+    <text x="85" y="112" text-anchor="middle" class="device-title">服务器</text>
+    <text x="85" y="132" text-anchor="middle" class="device-subtitle">解封装到 HTTP</text>
+  </g>
+
+  <g class="step step1">
+    <rect x="70" y="410" width="236" height="76" class="card" />
+    <text x="88" y="437" class="label">1. 客户端查路由表</text>
+    <text x="88" y="462" class="small">下一跳 = 默认网关</text>
+    <text x="88" y="482" class="small">ARP 查网关 MAC</text>
+  </g>
+
+  <g class="step step2">
+    <rect x="314" y="410" width="232" height="76" class="card" />
+    <text x="332" y="437" class="label">2. 交换机转发帧</text>
+    <text x="332" y="462" class="small">看目标 MAC</text>
+    <text x="332" y="482" class="small">不拆 IP，不看 HTTP</text>
+  </g>
+
+  <g class="step step3">
+    <rect x="558" y="410" width="252" height="76" class="card" />
+    <text x="576" y="437" class="label">3. 路由器处理到三层</text>
+    <text x="576" y="462" class="small">拆旧帧，看目标 IP</text>
+    <text x="576" y="482" class="small">查路由表，封装新 MAC 帧</text>
+  </g>
+
+  <g class="step step4">
+    <rect x="845" y="410" width="334" height="76" class="card" />
+    <text x="863" y="437" class="label">4. 重复转发，直到服务器</text>
+    <text x="863" y="462" class="small">IP 目标通常不变，MAC 每跳变化</text>
+    <text x="863" y="482" class="small">NAT 时源 IP / 源端口可能改变</text>
+  </g>
+
+  <g id="packet" class="packet">
+    <rect x="-70" y="-34" width="140" height="68" class="mac-shell" />
+    <rect x="-56" y="-20" width="112" height="42" class="ip-shell" />
+    <rect x="-36" y="-8" width="72" height="18" class="http-core" />
+    <text x="0" y="-40" text-anchor="middle" class="tiny" id="mac1">MAC: 客户端 -> 网关</text>
+    <text x="0" y="-40" text-anchor="middle" class="tiny" id="mac2">MAC: 路由器 -> 下一跳</text>
+    <text x="0" y="-40" text-anchor="middle" class="tiny" id="mac3">MAC: 运营商 -> 下一跳</text>
+    <text x="0" y="-40" text-anchor="middle" class="tiny" id="mac4">MAC: 最后一跳 -> 服务器</text>
+    <text x="0" y="5" text-anchor="middle" class="tiny">HTTP / TCP / IP</text>
+  </g>
+
+  <g transform="translate(70 596)">
+    <rect class="card" width="1140" height="76" />
+    <text x="24" y="30" class="label">核心结论</text>
+    <text x="126" y="30" class="note">端系统走完整协议栈；交换机只看 MAC；路由器看 IP 决定下一跳，并重新封装二层 MAC 帧。</text>
+    <text x="126" y="56" class="note">IP 包不能直接在物理网络里裸传，必须被当前链路的二层帧承载；在以太网 / Wi-Fi 里通常就是 MAC 地址。</text>
+  </g>
+</svg>
