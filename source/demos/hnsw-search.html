@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HNSW 搜索动画</title>
+<style>
+  :root{
+    --bg:#fbf6ea; --panel:#fffdf6; --panel2:#fff4d6; --line:#e0d6bf;
+    --ink:#1f1b12; --muted:#7a6f5c; --dim:#b3a98f;
+    --node:#eef1fb; --node-stroke:#b3c0e6;
+    --hot:#e8870c; --hot2:#d8631a; --q:#d83a2e; --found:#15803f; --path:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 30% -8%,rgba(37,99,235,.07) 0,transparent 38%),var(--bg);
+    color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:22px 18px 30px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px;line-height:1.6;}
+  .stage{background:linear-gradient(180deg,#fffdf6,#f6edda);border:1px solid var(--line);
+    border-radius:14px;padding:8px 6px;}
+  svg{width:100%;height:auto;display:block;}
+  .panel-rect{fill:var(--panel);stroke:var(--line);stroke-width:1.5;transition:.4s;}
+  .panel-rect.active{fill:var(--panel2);stroke:#e0b94f;}
+  .layer-label{fill:var(--dim);font-size:13px;font-weight:700;letter-spacing:.5px;transition:.4s;}
+  .layer-label.active{fill:var(--ink);}
+  .layer-tag{fill:var(--muted);font-size:11px;transition:.4s;}
+  .edge{stroke:var(--line);stroke-width:1.4;transition:.4s;}
+  .node{fill:var(--node);stroke:var(--node-stroke);stroke-width:1.5;transition:.4s;}
+  .node.visited{fill:#ffb020;stroke:#e8870c;}
+  .node.found{fill:#34d399;stroke:#15803f;}
+  .node-label{fill:#3a3526;font-size:10px;font-weight:700;pointer-events:none;}
+  .qstar{fill:var(--q);stroke:#fff;stroke-width:1.5;}
+  .qlabel{fill:var(--q);font-size:11px;font-weight:800;}
+  .hoppath{stroke:var(--path);stroke-width:3.5;fill:none;stroke-linecap:round;
+    filter:drop-shadow(0 0 4px rgba(37,99,235,.45));}
+  .droppath{stroke:var(--hot2);stroke-width:2.4;stroke-dasharray:5 5;fill:none;
+    filter:drop-shadow(0 0 4px rgba(216,99,26,.4));}
+  .pointer{fill:none;stroke:#15120c;stroke-width:2.5;
+    filter:drop-shadow(0 0 6px rgba(255,255,255,.95));transition:cx .6s ease,cy .6s ease;}
+  .caption{margin-top:12px;min-height:46px;background:#fffdf6;border:1px solid var(--line);
+    border-radius:10px;padding:11px 14px;font-size:15px;line-height:1.55;}
+  .caption b{color:var(--hot);}
+  .controls{margin-top:12px;display:flex;gap:10px;align-items:center;}
+  button{background:var(--path);color:#fff;border:0;border-radius:8px;padding:9px 18px;
+    font-size:14px;font-weight:700;cursor:pointer;}
+  button:hover{filter:brightness(1.1);}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:10px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>HNSW 是怎么找最近邻的</h1>
+  <p class="sub">★ 是你要查的目标向量。搜索从<b>顶层</b>大跨度逼近，逐层下降、越来越精细，最后在<b>底层</b>锁定最近邻。看高亮的小球怎么一跳一跳靠近 ★。</p>
+
+  <div class="stage">
+    <svg id="svg" viewBox="0 0 820 660" role="img" aria-label="HNSW 分层搜索动画"></svg>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:#cdd5ee;border:1px solid #b3c0e6"></i>向量节点</span>
+    <span><i class="dot" style="background:#ffb020"></i>走过的路径</span>
+    <span><i class="dot" style="background:#34d399"></i>命中的最近邻</span>
+    <span><i class="dot" style="background:#d83a2e"></i>查询目标 ★</span>
+    <span><i class="dot" style="background:#d8631a"></i>层间下降</span>
+  </div>
+
+  <div class="caption" id="caption">准备开始…</div>
+  <div class="controls"><button id="replay">▶ 重新播放</button></div>
+</div>
+
+<script>
+// ---- 数据：节点坐标（局部）、各层包含哪些节点、各层的边 ----
+const POS = {
+  n1:[110,45], n2:[210,120], n3:[330,55], n4:[300,118], n5:[545,68],
+  n6:[640,120], n7:[180,82], n8:[430,118], n9:[450,46], n10:[520,118],
+  n12:[665,58], n13:[588,60], n14:[470,98]
+};
+const Q = [598,52]; // 查询目标（局部坐标）
+
+const LAYERS = [
+  { name:"Layer 2", tag:"顶层 · 节点最少、跨度最大",
+    nodes:["n1","n3","n5","n12"],
+    edges:[["n1","n3"],["n3","n5"],["n5","n12"]] },
+  { name:"Layer 1", tag:"中间层 · 更密",
+    nodes:["n1","n3","n5","n9","n12","n13","n6"],
+    edges:[["n1","n3"],["n3","n9"],["n9","n5"],["n5","n13"],["n5","n12"],["n13","n6"]] },
+  { name:"Layer 0", tag:"底层 · 包含全部节点、边最密",
+    nodes:Object.keys(POS),
+    edges:[["n1","n7"],["n7","n2"],["n2","n4"],["n4","n8"],["n8","n9"],["n3","n9"],
+           ["n9","n14"],["n14","n5"],["n5","n10"],["n10","n13"],["n13","n5"],
+           ["n13","n12"],["n5","n6"],["n13","n14"],["n3","n4"]] },
+];
+
+// 布局参数
+const OX=85, PANEL_X=60, PANEL_W=720, PANEL_TOP=[70,275,480], PANEL_H=160;
+const abs = (id,li)=>[OX+POS[id][0]*0.94, PANEL_TOP[li]+POS[id][1]];
+const absQ = (li)=>[OX+Q[0]*0.94, PANEL_TOP[li]+Q[1]];
+
+const SVG="http://www.w3.org/2000/svg";
+const svg=document.getElementById("svg");
+const el=(t,a={})=>{const e=document.createElementNS(SVG,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const nodeEls={}; // `${li}_${id}` -> circle
+
+function build(){
+  svg.innerHTML="";
+  LAYERS.forEach((L,li)=>{
+    const g=el("g",{id:"layer"+li});
+    g.appendChild(el("rect",{class:"panel-rect",id:"panel"+li,x:PANEL_X,y:PANEL_TOP[li]-15,
+      width:PANEL_W,height:PANEL_H,rx:12}));
+    g.appendChild(Object.assign(el("text",{class:"layer-label",id:"label"+li,x:PANEL_X+14,y:PANEL_TOP[li]+8}),{textContent:L.name}));
+    g.appendChild(Object.assign(el("text",{class:"layer-tag",x:PANEL_X+14,y:PANEL_TOP[li]+26}),{textContent:L.tag}));
+    // edges
+    L.edges.forEach(([a,b])=>{
+      const [x1,y1]=abs(a,li),[x2,y2]=abs(b,li);
+      g.appendChild(el("line",{class:"edge",x1,y1,x2,y2}));
+    });
+    // query star
+    const [qx,qy]=absQ(li);
+    g.appendChild(star(qx,qy,9));
+    g.appendChild(Object.assign(el("text",{class:"qlabel",x:qx+12,y:qy+4}),{textContent:"★ 目标"}));
+    // nodes
+    L.nodes.forEach(id=>{
+      const [x,y]=abs(id,li);
+      const c=el("circle",{class:"node",id:`c_${li}_${id}`,cx:x,cy:y,r:11});
+      g.appendChild(c); nodeEls[`${li}_${id}`]=c;
+      g.appendChild(Object.assign(el("text",{class:"node-label",x:x-8,y:y+4}),{textContent:id.slice(1)}));
+    });
+    svg.appendChild(g);
+  });
+  // pointer (置顶)
+  pointer=el("circle",{class:"pointer",r:17,cx:-50,cy:-50});
+  svg.appendChild(pointer);
+}
+function star(cx,cy,r){
+  let p="";for(let i=0;i<10;i++){const ang=Math.PI/5*i-Math.PI/2;const rr=i%2?r*0.45:r;
+    p+=(i?"L":"M")+(cx+rr*Math.cos(ang)).toFixed(1)+" "+(cy+rr*Math.sin(ang)).toFixed(1);}
+  return el("path",{class:"qstar",d:p+"Z"});
+}
+
+let pointer, timers=[];
+function clearTimers(){timers.forEach(clearTimeout);timers=[];}
+function reset(){
+  document.querySelectorAll(".hoppath,.droppath").forEach(e=>e.remove());
+  Object.values(nodeEls).forEach(c=>c.classList.remove("visited","found"));
+  document.querySelectorAll(".panel-rect").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".layer-label").forEach(p=>p.classList.remove("active"));
+}
+function setActiveLayer(li){
+  document.querySelectorAll(".panel-rect").forEach((p,i)=>p.classList.toggle("active",i===li));
+  document.querySelectorAll(".layer-label").forEach((p,i)=>p.classList.toggle("active",i===li));
+}
+function movePtr(li,id){const [x,y]=abs(id,li);pointer.setAttribute("cx",x);pointer.setAttribute("cy",y);}
+function lit(li,id){nodeEls[`${li}_${id}`].classList.add("visited");}
+function hop(li,a,b){
+  const [x1,y1]=abs(a,li),[x2,y2]=abs(b,li);
+  const line=el("line",{class:"hoppath",x1,y1,x2,y2});
+  const len=Math.hypot(x2-x1,y2-y1);
+  line.style.strokeDasharray=len;line.style.strokeDashoffset=len;
+  svg.insertBefore(line,pointer);
+  requestAnimationFrame(()=>{line.style.transition="stroke-dashoffset .5s ease";line.style.strokeDashoffset=0;});
+}
+function drop(fromLi,toLi,id){
+  const [x1,y1]=abs(id,fromLi),[x2,y2]=abs(id,toLi);
+  const line=el("line",{class:"droppath",x1,y1,x2,y2});
+  svg.insertBefore(line,pointer);
+}
+
+const cap=document.getElementById("caption");
+// ---- 动画脚本（时间线）----
+const STEPS=[
+  {t:300, run:()=>{setActiveLayer(0);movePtr(0,"n1");lit(0,"n1");
+    cap.innerHTML="① 从<b>顶层 (Layer 2)</b> 的入口点 <b>1</b> 出发。顶层节点最少、连线跨度最大——专门用来“大步”靠近目标。";}},
+  {t:1300, run:()=>{hop(0,"n1","n3");setTimeout(()=>{movePtr(0,"n3");lit(0,"n3");},150);
+    cap.innerHTML="② 看当前点的邻居里谁离 ★ 更近 → 跳到 <b>3</b>。这就是“贪心路由”：每一步都朝目标更近的邻居走。";}},
+  {t:2300, run:()=>{hop(0,"n3","n5");setTimeout(()=>{movePtr(0,"n5");lit(0,"n5");},150);
+    cap.innerHTML="③ 再跳到 <b>5</b>，已经很接近 ★ 所在的区域了。顶层用很少的跳数就把范围缩到目标附近。";}},
+  {t:3500, run:()=>{drop(0,1,"n5");setActiveLayer(1);setTimeout(()=>movePtr(1,"n5"),120);lit(1,"n5");
+    cap.innerHTML="④ 这一层邻居里没有更近的了 → <b style='color:#ff7a45'>下降一层</b>到 <b>Layer 1</b>，从同一个点 5 继续。层更密，能看到更多邻居。";}},
+  {t:4900, run:()=>{hop(1,"n5","n13");setTimeout(()=>{movePtr(1,"n13");lit(1,"n13");},150);
+    cap.innerHTML="⑤ 在更密的中间层，发现了一个<b>更近的点 13</b>（顶层根本没有它）→ 跳过去。越往下，定位越精细。";}},
+  {t:6100, run:()=>{drop(1,2,"n13");setActiveLayer(2);setTimeout(()=>movePtr(2,"n13"),120);lit(2,"n13");
+    cap.innerHTML="⑥ 再<b style='color:#ff7a45'>下降到底层 Layer 0</b>（包含<b>全部</b>节点、边最密），落在 13 上做最后的精搜。";}},
+  {t:7500, run:()=>{
+    nodeEls["2_n13"].classList.remove("visited");nodeEls["2_n13"].classList.add("found");
+    nodeEls["2_n5"].classList.add("found");
+    cap.innerHTML="⑦ 底层精搜确认：离 ★ 最近的就是 <b style='color:#34d399'>13</b>（次近 5）→ 返回 <b>top-k</b> 最近邻。完成 ✓";}},
+  {t:9500, run:()=>play()}, // loop
+];
+function play(){
+  clearTimers();reset();movePtr(0,"n1");pointer.setAttribute("cx",-50);
+  STEPS.forEach(s=>timers.push(setTimeout(s.run,s.t)));
+}
+build();play();
+document.getElementById("replay").onclick=play;
+</script>
+</body>
+</html>
